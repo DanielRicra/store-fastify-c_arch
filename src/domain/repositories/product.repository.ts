@@ -1,8 +1,9 @@
+import { PaginationDTO } from "../dtos";
 import { ProductDTO, UpdateProductDTO } from "../dtos/product";
-import { ProductEntity } from "../entities";
+import { ProductEntity, ProductListEntity } from "../entities";
 
 export abstract class ProductRepository {
-  abstract getProducts(): Promise<ProductEntity[]>;
+  abstract getProducts(options: PaginationDTO): Promise<ProductListEntity>;
   abstract getProduct(id: number): Promise<ProductEntity>;
   abstract updateProduct(
     id: number,
