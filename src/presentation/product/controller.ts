@@ -10,6 +10,7 @@ import {
   UpdateProduct,
 } from "../../domain/use-cases/product";
 import { ProductDTO, UpdateProductDTO } from "../../domain/dtos/product";
+import { PaginationDTO } from "../../domain/dtos";
 
 export class ProductController {
   constructor(private readonly productRepository: ProductRepository) {}
@@ -23,8 +24,10 @@ export class ProductController {
   };
 
   getProducts: RouteHandlerMethod = (req, reply) => {
+    const queryParams = PaginationDTO.create(req.query as Object);
+
     new GetProducts(this.productRepository)
-      .execute()
+      .execute(queryParams)
       .then((data) => reply.send(data))
       .catch((err) => this.handleError(err, reply));
   };
