@@ -1,4 +1,5 @@
-import { FastifyPluginAsync, FastifyPluginCallback, fastify } from "fastify";
+import { FastifyPluginAsync, fastify } from "fastify";
+import cors from "@fastify/cors";
 
 interface Options {
   port?: number;
@@ -17,6 +18,10 @@ export class Server {
 
   start() {
     this.app.register(this.routes, { prefix: "/api" });
+    this.app.register(cors, {
+      origin: "http://localhost:4200",
+      methods: ["GET", "PUT", "POST", "DELETE"],
+    });
     this.app.listen({ port: this.port }, (err, address) => {
       if (err) {
         this.app.log.error(err);
