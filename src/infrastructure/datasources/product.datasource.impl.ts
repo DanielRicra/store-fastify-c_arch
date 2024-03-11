@@ -1,25 +1,51 @@
 import { ProductDatasource } from "../../domain/datasources";
 import { ProductDTO, UpdateProductDTO } from "../../domain/dtos/product";
-import { ProductEntity } from "../../domain/entities";
+import { ProductEntity, ProductListEntity } from "../../domain/entities";
 import { db } from "../../data/sqlite";
 import { CustomError } from "../../domain/errors";
 import { ProductMapper } from "../mappers";
+import { PaginationDTO } from "../../domain/dtos";
 
 export class ProductDatasourceImpl implements ProductDatasource {
-  async getProducts(): Promise<ProductEntity[]> {
+  async getProducts({
+    page,
+    perPage,
+  }: PaginationDTO): Promise<ProductListEntity> {
     try {
-      const products = await new Promise<Object[]>((resolve, reject) => {
-        db.all("SELECT * FROM products", (err, row) => {
-          if (err) {
-            reject(err);
+      const total = await new Promise<number>((resolve, reject) => {
+        db.get(
+          "SELECT COUNT(*) as count FROM products",
+          (err, row: { count: number }) => {
+            if (err) reject(err);
+
+            resolve(row.count);
           }
-          resolve(row as Object[]);
-        });
+        );
       });
 
-      return products.map((product: Object) =>
+      const products = await new Promise<Object[]>((resolve, reject) => {
+        db.all(
+          "SELECT * FROM products LIMIT ? OFFSET ?",
+          [perPage, (page - 1) * perPage],
+          (err, row) => {
+            if (err) {
+              reject(err);
+            }
+            resolve(row as Object[]);
+          }
+        );
+      });
+      
+      if (products.length === 0) {
+        throw CustomError.notFound("There is nothing here")
+      }
+
+      const items = products.map((product: Object) =>
         ProductMapper.productEntityFromObject(product)
       );
+
+      const pages = Math.ceil(total / perPage);
+      return new ProductListEntity(items, total, pages, perPage, page);
     } catch (error) {
       if (error instanceof CustomError) throw error;
 
