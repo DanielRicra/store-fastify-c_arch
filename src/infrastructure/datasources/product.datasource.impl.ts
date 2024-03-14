@@ -65,7 +65,7 @@ export class ProductDatasourceImpl implements ProductDatasource {
       const updatedProduct = await new Promise<Object>((resolve, reject) => {
         db.run(
           "UPDATE products SET name=?,imgUrl=?,price=?,rating=?  WHERE id=?",
-          [imgUrl, name, price, rating, id],
+          [name, imgUrl, price, rating, id],
           function (err) {
             if (err) {
               reject(err);
